@@ -1,0 +1,1 @@
+"""GrillMe FastAPI application package."""
