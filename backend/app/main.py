@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.api.routes import health
+from backend.app.api.routes import health, ingestion
 from backend.app.core.config import settings
 
 
@@ -29,6 +29,7 @@ def create_application() -> FastAPI:
     # Mount routes
     application.include_router(health.router, prefix="/api")
     application.include_router(health.router)  # Also expose /health at top level
+    application.include_router(ingestion.router, prefix="/api")
 
     @application.get("/", tags=["root"], summary="API root information")
     def root() -> dict[str, str]:

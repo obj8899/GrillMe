@@ -33,5 +33,14 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
+    # Ingestion & GitHub Configuration
+    github_token: str | None = None
+    github_api_base: str = "https://api.github.com"
+    max_repo_size_bytes: int = 50 * 1024 * 1024  # 50 MB
+    max_file_count: int = 500
+    max_file_size_bytes: int = 100 * 1024  # 100 KB
+    chunk_size_lines: int = 50
+    chunk_overlap_lines: int = 10
+
 
 settings = Settings()

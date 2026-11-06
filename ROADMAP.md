@@ -12,7 +12,7 @@ This roadmap breaks down the construction of GrillMe from absolute zero into sma
 [Phase 0: Foundation & Environment (Checkpoints 0.1 - 0.6)] ──► COMPLETED
                │
                ▼
-[Phase 1: Ingestion & Parsing (Python, JS/TS + Fallback)]
+[Phase 1: Ingestion & Parsing (Python, JS/TS + Fallback)]  ──► COMPLETED
                │
                ▼
 [Phase 2: RAG & Indexing (ChromaDB via Abstraction)]
@@ -84,24 +84,24 @@ Continuous Workstream: Evaluation, Benchmarking & Experiments
 
 ## Phase 1: Repository Ingestion & Code Parsing Pipeline
 
-- **Status:** *Not Started*
-- **Objective:** Build an isolated ingestion service that accepts a public GitHub URL, clones the repository safely into a temporary directory without executing code, filters non-code assets, and parses code with initial syntax-aware support for Python and JavaScript/TypeScript plus an extensible fallback sliding-window text chunker.
+- **Status:** *Completed*
+- **Objective:** Build an isolated ingestion service that accepts a public GitHub URL, clones/downloads the repository safely into a temporary directory without executing code, filters non-code assets, and parses code with initial syntax-aware support for Python and JavaScript/TypeScript plus an extensible fallback sliding-window text chunker.
 - **Implementation Tasks:**
-  - Implement Git fetcher to clone public repositories into a sandboxed temporary directory with automatic cleanup.
+  - Implement Git/GitHub archive fetcher to stream public repository archives into a sandboxed temporary directory with automatic cleanup.
   - Implement repository URL validation and size/file count safety limits.
   - Implement file exclusion filters (ignoring `.git/`, binary files, assets, `node_modules/`, `venv/`, lockfiles).
-  - Implement extensible chunker base interface (`BaseCodeChunker`).
+  - Implement extensible chunker base interface (`BaseCodeChunker` / `BaseCodeParser`).
   - Implement syntax-aware chunkers for **Python** (`.py`) and **JavaScript/TypeScript** (`.js`, `.jsx`, `.ts`, `.tsx`), preserving class, function, and module boundaries.
   - Implement fallback sliding-window text chunker for documentation and unsupported languages.
-  - Extract high-level repository summary and directory tree structure.
+  - Extract high-level repository summary, chunk metadata, and parsing statistics via `/api/ingest`.
 - **Expected Deliverables:**
-  - Module: `src/grillme/ingestion/` (or `backend/app/ingestion/`) containing fetcher, cleaner, structural parsers, and fallback chunker.
+  - Module: `backend/app/ingestion/` containing fetcher, cleaner, structural parsers, and fallback chunker.
   - Unit tests with mock repositories verifying exclusion filters, size limits, Python/TS AST chunking, and fallback behavior.
 - **Verification Criteria:**
-  - Running ingestion against sample Python and TypeScript repos extracts function/class chunks with accurate line ranges and metadata headers.
-  - Non-code files and lockfiles are completely excluded.
-  - Cloned temporary directories are purged after processing.
-  - Zero repository code is executed during ingestion.
+  - Running ingestion against sample Python and TypeScript repos extracts function/class chunks with accurate line ranges and metadata headers. (Verified: `test_parsers.py`).
+  - Non-code files and lockfiles are completely excluded. (Verified: `test_file_filter.py`).
+  - Cloned temporary directories are purged after processing. (Verified: `tempfile.TemporaryDirectory`).
+  - Zero repository code is executed during ingestion. (Verified).
 
 ---
 

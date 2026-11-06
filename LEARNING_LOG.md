@@ -61,3 +61,27 @@ Copy and paste the template below to document each session or milestone:
 #### 4. Open Questions to Revisit
 - [ ] Verify LangGraph SQLite checkpointer package name and API when entering Phase 3.
 - [ ] Evaluate AST parsing libraries (e.g., Tree-sitter vs. Python `ast`) for Phase 1 chunking.
+### [2026-11-06] — Phase 1: Repository Ingestion & Code Parsing Pipeline
+
+- **Author / Contributor:** Agent & User Team
+- **Relevant Phase:** Phase 1
+
+#### 1. Concepts Learned
+- **Tree-sitter Python Bindings:** In modern Tree-sitter (0.22+), language grammars are distributed as dedicated prebuilt packages (`tree-sitter-javascript`, `tree-sitter-typescript`). They parse both standard JS and TypeScript/TSX into concrete syntax trees without requiring a Node.js runtime.
+- **Zip Slip Defense:** Validating archive filenames using `Path.resolve().relative_to(target_dir)` and checking for `..` segments prevents malicious directory traversal when unpacking untrusted zip files.
+- **Extensionless Text Detection:** Real-world repositories frequently include files without extensions (e.g., `README`, `LICENSE`, `Dockerfile`, `Makefile`). Explicitly mapping these filenames ensures essential documentation is not discarded during filtering.
+
+#### 2. Implementation Notes & Technical Discoveries
+- Implemented an extensible parsing architecture with `BaseCodeParser` and `ParserRegistry`, supporting AST extraction for Python, Tree-sitter for JS/TS, and a sliding-window fallback chunker for documentation.
+- Integrated GitHub API streaming archive retrieval in `GitHubClient`, strictly enforcing size and file count caps to guard against Denial of Service.
+- Mounted the `/api/ingest` endpoint on FastAPI with structured error mapping (400, 404, 413, 422, 429).
+- Separated live network integration tests using `@pytest.mark.live` and configured `pyproject.toml` to deselect live tests by default (`-m 'not live'`), ensuring the test suite remains fast, isolated, and deterministic.
+
+#### 3. Errors Encountered & How They Were Resolved
+- **Error:** `tests/test_safe_extraction.py:58: AssertionError: assert 'safe.py' in ['myorg-myrepo-a1b2c3d/safe.py']`
+  - **Root Cause:** When zip archives contained mixed entries (some with GitHub prefixes and some malicious traversal attempts), a strict `all(name.startswith(prefix))` check failed to detect the legitimate archive folder prefix.
+  - **Solution / Fix:** Updated prefix detection in `extract_zipball_safely` to identify the first valid non-dot directory segment, correctly stripping the container prefix from legitimate repository files while neutralizing traversal attempts.
+
+#### 4. Open Questions to Revisit
+- [ ] For Phase 2 (RAG & Indexing), design the `VectorStore` abstraction interface to ingest `list[CodeChunk]` with metadata embeddings directly.
+- [ ] Evaluate ChromaDB embedding model options (e.g. `all-MiniLM-L6-v2` vs. OpenAI `text-embedding-3-small`).
